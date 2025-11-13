@@ -96,11 +96,11 @@ Conecta el sensor PIR al ESP32 de la siguiente manera:
 *   **Pin GND del Sensor PIR** -> **Pin GND del ESP32**
 *   **Pin OUT del Sensor PIR** -> **Pin GPIO 27 del ESP32**
 
-*(El código usa el pin 27, si usas otro, actualiza la variable `PIR_PIN` en `firmware/esp32-firmware.cpp`)*.
+*(El código usa el pin 27, si usas otro, actualiza la variable `PIR_PIN` en el código)*.
 
 #### **Paso 4: Configurar y Cargar el Código**
 
-1.  **Abre el código:** Abre el archivo `firmware/esp32-firmware.cpp` con el Arduino IDE.
+1.  **Abre el código:** Abre el archivo `firmware/esp32-firmware/esp32-firmware.ino` con el Arduino IDE.
 2.  **Modifica las credenciales WiFi:** Reemplaza `"TU_WIFI_SSID"` y `"TU_WIFI_PASSWORD"` con los datos de tu red. Las credenciales de Firebase ya están configuradas.
 3.  **Conecta el ESP32:** Usa un cable USB para conectar el ESP32 a tu computadora.
 4.  **Selecciona la Placa y el Puerto:**
