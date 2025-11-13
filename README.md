@@ -1,10 +1,10 @@
-# Proyecto IoT: Contador de Movimiento con ESP32 y Next.js
+# Proyecto IoT: Contador de Productos con ESP32 y Next.js
 
-Este proyecto es una solución IoT de extremo a extremo que utiliza un microcontrolador (ESP32) para detectar movimiento con un sensor PIR y una aplicación web (Next.js) como dashboard de monitoreo y control en tiempo real, utilizando Firebase como backend centralizado.
+Este proyecto es una solución IoT de extremo a extremo que utiliza un microcontrolador (ESP32) para detectar productos con un sensor de movimiento PIR y una aplicación web (Next.js) como dashboard de monitoreo y control en tiempo real, utilizando Firebase como backend centralizado.
 
 ## Arquitectura de la Solución
 
-*   **Dispositivo IoT (Rol: Cliente/Emisor):** Un ESP32 con un sensor de movimiento PIR. Es responsable de detectar movimiento e informar a Firebase.
+*   **Dispositivo IoT (Rol: Cliente/Emisor):** Un ESP32 con un sensor de movimiento PIR. Es responsable de detectar un producto que pasa y reportarlo a Firebase.
 *   **Backend (Rol: Broker de Datos):** Un proyecto de Firebase que utiliza Realtime Database para la comunicación en tiempo real y Firebase Authentication para la seguridad.
 *   **Interfaz de Usuario (Rol: Dashboard/Receptor):** Una aplicación web desarrollada con Next.js y ShadCN/UI que permite a los usuarios monitorear el contador y enviar comandos.
 
