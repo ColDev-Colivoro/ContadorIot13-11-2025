@@ -18,7 +18,7 @@
 // 1. INCLUIR LIBRERÍAS
 #include <Arduino.h>
 #include <WiFi.h>
-#include <Firebase_ESP_Client.h>
+#include <FirebaseESP32.h>
 
 // --- CALLBACKS PARA EVENTOS DE FIREBASE ---
 void streamCallback(FirebaseStream data);

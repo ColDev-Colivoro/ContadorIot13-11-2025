@@ -3,14 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  "projectId": "studio-4285007076-74e1c",
-  "appId": "1:1006165106392:web:d11308b0cca7e8e57481ad",
-  "apiKey": "AIzaSyAkmjWdqUElqp4l8XB56COpF6fGMZx4mD0",
-  "authDomain": "studio-4285007076-74e1c.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "1006165106392",
-  "storageBucket": "studio-4285007076-74e1c.appspot.com",
-  "databaseURL": "https://studio-4285007076-74e1c-default-rtdb.firebaseio.com"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
 };
 
 // Initialize Firebase
