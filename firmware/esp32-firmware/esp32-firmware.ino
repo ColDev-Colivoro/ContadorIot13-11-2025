@@ -21,7 +21,8 @@
 #include <Firebase_ESP_Client.h>
 
 // --- CALLBACKS PARA EVENTOS DE FIREBASE ---
-void streamCallback(FirebaseStream data);
+// La firma de la función cambió de FirebaseStream a StreamData
+void streamCallback(StreamData data);
 void streamTimeoutCallback(bool timeout);
 
 // 2. CONFIGURACIÓN DE ACCESO (REEMPLAZAR CON TUS DATOS)
@@ -81,16 +82,17 @@ void setup() {
   // Configuración de Firebase
   config.api_key = API_KEY;
   config.database_url = DATABASE_URL;
-
-  // Asignar los callbacks para el Stream
-  config.stream_callback = streamCallback;
-  config.stream_timeout_callback = streamTimeoutCallback;
+  
+  // En la nueva librería, los callbacks se asignan al objeto del stream directamente
+  stream.setStreamCallback(streamCallback);
+  stream.setTimeoutCallback(streamTimeoutCallback);
 
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
 
   // Iniciar la escucha del comando de reseteo
-  if (!Firebase.beginStream(stream, "/commands/reset")) {
+  // La función beginStream ahora es parte de RTDB y recibe un puntero al objeto stream
+  if (!Firebase.RTDB().beginStream(&stream, "/commands/reset")) {
     Serial.println("------------------------------------");
     Serial.println("Error iniciando Stream: " + stream.errorReason());
     Serial.println("------------------------------------");
@@ -110,7 +112,8 @@ void loop() {
     // Si había conteos offline, sincronízalos ahora
     if (offlineCount > 0) {
         Serial.printf("Sincronizando %d conteos offline...\n", offlineCount);
-        Firebase.RTDB.increment(&fbdo, "/products/count", offlineCount);
+        // La función 'increment' se reemplaza por 'addInt'
+        Firebase.RTDB().addInt(&fbdo, "/products/count", offlineCount);
         offlineCount = 0; // Resetear contador offline
     }
   } else if (!Firebase.ready()) {
@@ -135,9 +138,10 @@ void loop() {
     if (firebaseReady) {
       // Si hay conexión, incrementa el contador en Firebase
       Serial.println("Incrementando contador en Firebase...");
-      // Usamos `increment` para una operación atómica
-      if (Firebase.RTDB.increment(&fbdo, "/products/count", 1)) {
-        Serial.println("Contador incrementado con éxito: " + fbdo.stringData());
+      // Usamos `addInt` para una operación atómica y segura
+      if (Firebase.RTDB().addInt(&fbdo, "/products/count", 1)) {
+        // .stringData() se reemplaza por .payload()
+        Serial.println("Contador incrementado con éxito: " + fbdo.payload());
       } else {
         Serial.println("Error al incrementar: " + fbdo.errorReason());
         offlineCount++; // Si falla, lo guardamos para después
@@ -155,8 +159,9 @@ void loop() {
 /**
  * @brief Callback que se ejecuta cuando llega un dato del Stream de Firebase.
  * Aquí se maneja el comando de reseteo.
+ * @param data Objeto con la información del evento (tipo StreamData)
  */
-void streamCallback(FirebaseStream data) {
+void streamCallback(StreamData data) {
   Serial.println("Evento de Stream recibido!");
   Serial.printf("Ruta: %s\nTipo de evento: %s\n", data.streamPath().c_str(), data.eventType().c_str());
 
@@ -165,7 +170,7 @@ void streamCallback(FirebaseStream data) {
     Serial.println("Señal de reseteo recibida desde la app.");
     
     // Ponemos el contador en Firebase a 0
-    if (Firebase.RTDB.setInt(&fbdo, "/products/count", 0)) {
+    if (Firebase.RTDB().setInt(&fbdo, "/products/count", 0)) {
         Serial.println("Contador reseteado a 0 en Firebase.");
         offlineCount = 0; // También resetea el contador offline
     } else {
