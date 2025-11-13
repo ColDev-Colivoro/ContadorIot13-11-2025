@@ -14,7 +14,7 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle className="text-2xl font-headline">Login</CardTitle>
           <CardDescription>
-            Enter your credentials to access the IoT dashboard.
+            Choose your preferred sign-in method to access the dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent>
