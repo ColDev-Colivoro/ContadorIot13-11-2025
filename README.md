@@ -21,11 +21,11 @@ A continuación se detalla el progreso del proyecto basado en los requisitos de 
 | ✅ | **1.1. Crear Proyecto en Firebase** | El proyecto está creado e inicializado. |
 | ✅ | **1.2. Habilitar Servicios** | **Authentication** y **Realtime Database** están activados y configurados en la app. |
 | ✅ | **1.3. Definir Estructura de Datos en RTDB** | La estructura está definida y en uso: `products/count` y `commands/reset`. |
-| 🟡 | **1.4. Implementar Reglas de Seguridad** | Las reglas están definidas en `src/config/firebase.ts`, pero **deben ser copiadas y aplicadas** en la consola de Firebase para ser efectivas. |
+| 🟡 | **1.4. Implementar Reglas de Seguridad** | Las reglas están listas, pero **deben ser copiadas y aplicadas** en la consola de Firebase para ser efectivas. |
 
 **Acción Requerida:**
 1.  Ve a tu consola de Firebase -> Realtime Database -> Pestaña "Rules".
-2.  Pega las reglas que se encuentran comentadas en `src/config/firebase.ts`.
+2.  Borra el contenido existente y pega las siguientes reglas. Luego, presiona "Publish".
 
 ```json
 {
