@@ -25,10 +25,10 @@ void streamCallback(FirebaseStream data);
 void streamTimeoutCallback(bool timeout);
 
 // 2. CONFIGURACIÓN DE ACCESO (REEMPLAZAR CON TUS DATOS)
-#define WIFI_SSID "TU_WIFI_SSID"
-#define WIFI_PASSWORD "TU_WIFI_PASSWORD"
-#define API_KEY "TU_FIREBASE_API_KEY"
-#define DATABASE_URL "TU_FIREBASE_DATABASE_URL" // ej: https://mi-proyecto-12345-default-rtdb.firebaseio.com
+#define WIFI_SSID "TU_WIFI_SSID" // <--- REEMPLAZA ESTO
+#define WIFI_PASSWORD "TU_WIFI_PASSWORD" // <--- REEMPLAZA ESTO
+#define API_KEY "AIzaSyAkmjWdqUElqp4l8XB56COpF6fGMZx4mD0" // ¡LISTO!
+#define DATABASE_URL "https://studio-4285007076-74e1c-default-rtdb.firebaseio.com" // ¡LISTO!
 
 // 3. PINES Y VARIABLES GLOBALES
 #define PIR_PIN 27       // Pin donde está conectado el sensor PIR
