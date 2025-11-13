@@ -35,8 +35,8 @@ export function AuthForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: process.env.NEXT_PUBLIC_TEST_USER_EMAIL || "",
-      password: process.env.NEXT_PUBLIC_TEST_USER_PASSWORD || "",
+      email: "",
+      password: "",
     },
   });
 
