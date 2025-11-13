@@ -18,10 +18,10 @@
 // 1. INCLUIR LIBRERÍAS
 #include <Arduino.h>
 #include <WiFi.h>
-#include <FirebaseESP32.h>
+// ¡CORRECCIÓN! Este es el encabezado correcto para la v4.x de la librería
+#include <Firebase_ESP_Client.h>
 
 // --- CALLBACKS PARA EVENTOS DE FIREBASE ---
-// La firma de la función cambió de FirebaseStream a StreamData
 void streamCallback(StreamData data);
 void streamTimeoutCallback(bool timeout);
 
@@ -35,22 +35,21 @@ void streamTimeoutCallback(bool timeout);
 #define PIR_PIN 27       // Pin donde está conectado el sensor PIR
 volatile bool motionDetected = false;
 unsigned long lastDebounceTime = 0;
-unsigned long debounceDelay = 1000; // 1 segundo de anti-rebote para no contar el mismo objeto múltiples veces
+unsigned long debounceDelay = 1000; // 1 segundo de anti-rebote
 
 // 4. OBJETOS DE FIREBASE
-FirebaseData fbdo;         // Objeto para operaciones Firebase (get, set, etc.)
-FirebaseData stream;       // Objeto para el listener (Stream) del comando de reseteo
-FirebaseAuth auth;         // Objeto para la autenticación
-FirebaseConfig config;     // Objeto para la configuración de Firebase
+FirebaseData fbdo;       // Objeto para operaciones generales
+FirebaseData stream;     // Objeto para el listener del comando de reseteo
+FirebaseAuth auth;       // Objeto para la autenticación
+FirebaseConfig config;   // Objeto para la configuración
 
 // 5. VARIABLES DE ESTADO Y OFFLINE
 bool firebaseReady = false;
-int offlineCount = 0; // Contador para cuando no hay conexión
+int offlineCount = 0;
 unsigned long lastCheckTime = 0;
-const unsigned long checkInterval = 30000; // Revisa conexión cada 30 segundos
+const unsigned long checkInterval = 30000; // 30 segundos
 
 // --- FUNCIÓN DE INTERRUPCIÓN ---
-// Se activa cuando el pin del sensor PIR cambia de estado (LOW a HIGH)
 void IRAM_ATTR detectsMovement() {
   if ((millis() - lastDebounceTime) > debounceDelay) {
     motionDetected = true;
@@ -58,16 +57,14 @@ void IRAM_ATTR detectsMovement() {
   }
 }
 
-// --- CONFIGURACIÓN INICIAL (se ejecuta una vez) ---
+// --- CONFIGURACIÓN INICIAL ---
 void setup() {
   Serial.begin(115200);
   Serial.println("Iniciando ESP32 - Contador de Productos IoT...");
 
-  // Configurar el pin del sensor PIR como entrada
   pinMode(PIR_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PIR_PIN), detectsMovement, RISING);
 
-  // Conexión a WiFi
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Conectando a WiFi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -79,19 +76,16 @@ void setup() {
   Serial.println(WiFi.localIP());
   Serial.println();
 
-  // Configuración de Firebase
   config.api_key = API_KEY;
   config.database_url = DATABASE_URL;
-  
-  // En la nueva librería, los callbacks se asignan al objeto del stream directamente
-  stream.setStreamCallback(streamCallback);
-  stream.setTimeoutCallback(streamTimeoutCallback);
+
+  // Asignar callbacks al objeto de stream
+  stream.setStreamCallback(streamCallback, streamTimeoutCallback);
 
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
 
   // Iniciar la escucha del comando de reseteo
-  // La función beginStream ahora es parte de RTDB y recibe un puntero al objeto stream
   if (!Firebase.RTDB().beginStream(&stream, "/commands/reset")) {
     Serial.println("------------------------------------");
     Serial.println("Error iniciando Stream: " + stream.errorReason());
@@ -101,26 +95,26 @@ void setup() {
   Serial.println("Setup finalizado. Esperando eventos...");
 }
 
-
-// --- BUCLE PRINCIPAL (se ejecuta repetidamente) ---
+// --- BUCLE PRINCIPAL ---
 void loop() {
-  // Primero, revisa si Firebase está listo
   if (Firebase.ready() && !firebaseReady) {
     firebaseReady = true;
     Serial.println("Firebase listo para operar.");
-    
-    // Si había conteos offline, sincronízalos ahora
+
     if (offlineCount > 0) {
-        Serial.printf("Sincronizando %d conteos offline...\n", offlineCount);
-        // La función 'increment' se reemplaza por 'addInt'
-        Firebase.RTDB().addInt(&fbdo, "/products/count", offlineCount);
-        offlineCount = 0; // Resetear contador offline
+      Serial.printf("Sincronizando %d conteos offline...\n", offlineCount);
+      if (Firebase.RTDB().addInt(&fbdo, "/products/count", offlineCount)) {
+        offlineCount = 0;
+      } else {
+        Serial.println("Error al sincronizar conteos offline: " + fbdo.errorReason());
+      }
     }
-  } else if (!Firebase.ready()) {
-    firebaseReady = false;
   }
 
-  // Comprobar estado de conexión periódicamente para informar
+  if (!Firebase.ready()) {
+      firebaseReady = false;
+  }
+
   if (millis() - lastCheckTime > checkInterval) {
     lastCheckTime = millis();
     if (WiFi.status() != WL_CONNECTED) {
@@ -130,24 +124,19 @@ void loop() {
     }
   }
 
-  // Si se detectó movimiento (manejado por la interrupción)
   if (motionDetected) {
-    motionDetected = false; // Resetear la bandera
+    motionDetected = false;
     Serial.println("¡Movimiento detectado!");
 
     if (firebaseReady) {
-      // Si hay conexión, incrementa el contador en Firebase
       Serial.println("Incrementando contador en Firebase...");
-      // Usamos `addInt` para una operación atómica y segura
       if (Firebase.RTDB().addInt(&fbdo, "/products/count", 1)) {
-        // .stringData() se reemplaza por .payload()
-        Serial.println("Contador incrementado con éxito: " + fbdo.payload());
+        Serial.println("Contador incrementado con éxito.");
       } else {
         Serial.println("Error al incrementar: " + fbdo.errorReason());
-        offlineCount++; // Si falla, lo guardamos para después
+        offlineCount++;
       }
     } else {
-      // Si no hay conexión, incrementa el contador local
       offlineCount++;
       Serial.printf("Conexión perdida. Conteos offline acumulados: %d\n", offlineCount);
     }
@@ -156,34 +145,25 @@ void loop() {
 
 // --- DEFINICIÓN DE CALLBACKS ---
 
-/**
- * @brief Callback que se ejecuta cuando llega un dato del Stream de Firebase.
- * Aquí se maneja el comando de reseteo.
- * @param data Objeto con la información del evento (tipo StreamData)
- */
 void streamCallback(StreamData data) {
   Serial.println("Evento de Stream recibido!");
-  Serial.printf("Ruta: %s\nTipo de evento: %s\n", data.streamPath().c_str(), data.eventType().c_str());
+  Serial.printf("Ruta: %s, Evento: %s, Dato: %s\n", data.streamPath().c_str(), data.eventType().c_str(), data.payload().c_str());
 
-  // Si el evento ocurre en la ruta que nos interesa
   if (data.streamPath() == "/reset" && data.eventType() == "put") {
-    Serial.println("Señal de reseteo recibida desde la app.");
-    
-    // Ponemos el contador en Firebase a 0
-    if (Firebase.RTDB().setInt(&fbdo, "/products/count", 0)) {
-        Serial.println("Contador reseteado a 0 en Firebase.");
-        offlineCount = 0; // También resetea el contador offline
-    } else {
-        Serial.println("Error al resetear el contador: " + fbdo.errorReason());
+    if(data.payload() == "true") { // Opcional: chequear el valor
+        Serial.println("Comando de reseteo recibido.");
+        if (Firebase.RTDB().setInt(&fbdo, "/products/count", 0)) {
+            Serial.println("Contador reseteado a 0 en Firebase.");
+            offlineCount = 0;
+        } else {
+            Serial.println("Error al resetear el contador: " + fbdo.errorReason());
+        }
     }
   }
 }
 
-/**
- * @brief Callback que se ejecuta si el Stream se desconecta o agota el tiempo.
- */
 void streamTimeoutCallback(bool timeout) {
   if (timeout) {
-    Serial.println("Stream timeout, el listener se detuvo.");
+    Serial.println("Stream timeout, el listener se detuvo. Intentando reiniciar...");
   }
 }
